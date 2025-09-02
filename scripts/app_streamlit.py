@@ -2,12 +2,12 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+# ⚠️ Toujours tout en haut, avant toute UI Streamlit
+st.set_page_config(page_title="Plateforme Suivi des Ventes", layout="wide")
+
 # Charger les données
 df = pd.read_csv("data/ventes.csv", parse_dates=["Date"])
 df["CA"] = df["Quantité"] * df["Prix_Unitaire"]
-
-st.set_page_config(page_title="Plateforme Suivi des Ventes", layout="wide")
-
 # CSS pour centrer le titre et un peu de style
 st.markdown("""
     <style>
@@ -18,15 +18,13 @@ st.markdown("""
 
 st.markdown("<div class='center-title'>📊 Plateforme de suivi des ventes</div>", unsafe_allow_html=True)
 st.write("")
-st.set_page_config(page_title="Plateforme Suivi des Ventes", layout="wide")
-
-# 💡 ICI : On insère le style
+# 💡 Style pour les KPIs
 st.markdown("""
     <style>
     /* Centrer le titre */
     .center-title {text-align: center; color: #2E86C1; font-size: 32px; font-weight: bold;}
     
-    /* KPI Metrics : couleur de fond plus foncée et texte plus visible */
+    /* KPI Metrics */
     div[data-testid="stMetric"] {
         background: #f1f3f6;
         padding: 15px;
@@ -34,9 +32,7 @@ st.markdown("""
         text-align: center;
         border: 1px solid #d4d6da;
     }
-    
-    /* Chiffres des KPIs en gras et plus grands */
-    div[data-testid="stMetric"] > label {
+        div[data-testid="stMetric"] > label {
         color: #34495E;
         font-size: 18px;
     }
@@ -49,7 +45,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # =========================
-# Filtres (en haut)
+# Filtres
 # =========================
 st.markdown("### 🔎 Filtres de recherche")
 col_f1, col_f2, col_f3 = st.columns([2, 2, 2])
@@ -65,8 +61,10 @@ if categories:
 if clients:
     df_filtered = df_filtered[df_filtered["Client_ID"].isin(clients)]
 if dates and len(dates) == 2:
-    df_filtered = df_filtered[(df_filtered["Date"] >= pd.to_datetime(dates[0])) &
-                              (df_filtered["Date"] <= pd.to_datetime(dates[1]))]
+    df_filtered = df_filtered[
+        (df_filtered["Date"] >= pd.to_datetime(dates[0])) &
+        (df_filtered["Date"] <= pd.to_datetime(dates[1]))
+    ]
 
 # =========================
 # KPIs
@@ -113,7 +111,13 @@ col3, col4 = st.columns(2)
 
 with col3:
     st.markdown("### 🏆 Top 5 Produits (Quantité)")
-    top_produits = df_filtered.groupby("Produit")["Quantité"].sum().sort_values(ascending=False).head(5).reset_index()
+    top_produits = (
+        df_filtered.groupby("Produit")["Quantité"]
+        .sum()
+        .sort_values(ascending=False)
+        .head(5)
+        .reset_index()
+    )
     fig2 = px.bar(
         top_produits,
         x="Produit",
@@ -127,7 +131,13 @@ with col3:
 
 with col4:
     st.markdown("### 👤 Top 5 Clients (Chiffre d'affaires)")
-    top_clients = df_filtered.groupby("Client_ID")["CA"].sum().sort_values(ascending=False).head(5).reset_index()
+    top_clients = (
+        df_filtered.groupby("Client_ID")["CA"]
+        .sum()
+        .sort_values(ascending=False)
+        .head(5)
+        .reset_index()
+    )
     fig3 = px.bar(
         top_clients,
         x="Client_ID",
